@@ -1,4 +1,4 @@
-import gui.screen
+import screen
 import pygame
 from pygame.locals import *
 import time
@@ -13,10 +13,10 @@ def main():
     lastTickTime = 0
 
     
-    sources = gui.screen.SourceWH()
+    sources = screen.SourceWH()
 
     pygame.init()
-    screen = gui.screen.Loading(sources)
+    state = screen.Loading(sources)
 
     running = True
 
@@ -27,14 +27,14 @@ def main():
             t = time.time()
             if t >= lastFrameTime + frameInterval:
                 lastFrameTime = t
-                screen.display()
+                state.display()
             if t >= lastTickTime + tickInterval:
                 lastTickTime = t
                 
-                screen.update()
-                if screen.successor != None:
-                    screen = screen.successor
-            screen.handleEvent(pygame.event.get())
+                state.update()
+                if state.successor != None:
+                    state = state.successor
+            state.handleEvent(pygame.event.get())
             #pygame.joystick.quit()
             #pygame.joystick.init()
             if pygame.joystick.get_count() > len(joysticks):
