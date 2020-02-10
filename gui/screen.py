@@ -12,7 +12,7 @@ class Screen(ABC):
     def update(self):
         pass
 
-    def handleEvent(self, event):
+    def handleEvent(self, events):
         pass
 
 class Loading(Screen):
@@ -154,6 +154,21 @@ class Menu(Screen):
         pygame.display.flip()
 
     def update(self):
+        pass
+
+    def handleEvent(self, events):
+        for e in events:
+            if e.type == pygame.QUIT:
+                exit()
+            elif e.type == pygame.KEYDOWN:
+                if e.key == pygame.K_DOWN:
+                    self.selected = self.selected + 1
+                    if self.selected > len(self.lines) - 1:
+                        self.selected = 0
+                elif e.key == pygame.K_UP:
+                    self.selected = self.selected - 1
+                    if self.selected < 0:
+                        self.selected = len(self.lines) - 1
         pass
 
 class Connect(Screen):

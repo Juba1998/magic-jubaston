@@ -31,6 +31,7 @@ def main():
                 screen.update()
                 if screen.successor != None:
                     screen = screen.successor
+            screen.handleEvent(pygame.event.get())
             
 
     except KeyboardInterrupt:
