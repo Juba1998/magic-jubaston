@@ -1,2 +1,3 @@
 images/battlefield_background.jpg
-fonts/bbo.ttf.32
+fonts/naruto.ttf.32
+fonts/naruto.ttf.26

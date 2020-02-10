@@ -47,6 +47,8 @@ def main():
 
     except KeyboardInterrupt:
         running = False
+    if state is screen.Loading:
+        state.loader.join()
     pygame.quit()
         
 if __name__ == "__main__":
