@@ -1,0 +1,2 @@
+images/battlefield_background.jpg
+fonts/bbo.ttf.32
