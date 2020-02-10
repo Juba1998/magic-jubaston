@@ -114,14 +114,22 @@ class SourceWH():
     def restore(self):
         return self.storage
         
-class LocalConnection(Screen):
-    def __init__(self):
+class ContollerConnection(Screen):
+    def __init__(self, sources):
+        self.successor = None
         self.window = pygame.display.set_mode((1280,720))
         self.background = pygame.image.load("src/images/battlefield_background.jpg").convert()
-        self.window.blit(self.background, (0,0))
+        pygame.display.set_caption("Magic Jubaston | Contollers Connection")
 
     def display(self):
-        print("Display the connection of the different players and their controllers")
+        self.window.fill((0,0,0))
+        pygame.display.flip()
+
+    def update(self):
+        pass
+
+    def handleEvent(self, events):
+        pass
 
 class Menu(Screen):
     def __init__(self, sources):
@@ -136,6 +144,7 @@ class Menu(Screen):
         self.selected = 0
 
     def display(self):
+        pygame.display.set_caption("Magic Jubaston | Menu")
         self.window.blit(self.background, (0,0))
         w, h = pygame.display.get_surface().get_size()
         listY = h//(len(self.lines))
@@ -156,20 +165,41 @@ class Menu(Screen):
     def update(self):
         pass
 
+    def selectionUp(self):
+        self.selected = self.selected - 1
+        if self.selected < 0:
+            self.selected = len(self.lines) - 1
+
+    def selectionDown(self):
+        self.selected = self.selected + 1
+        if self.selected > len(self.lines) - 1:
+            self.selected = 0
+
+    def select(self):
+        if self.selected == 0:
+            self.successor = ContollerConnection(self.sources)
+
     def handleEvent(self, events):
         for e in events:
+            #print(e.type)
             if e.type == pygame.QUIT:
-                exit()
+                pygame.quit()
             elif e.type == pygame.KEYDOWN:
                 if e.key == pygame.K_DOWN:
-                    self.selected = self.selected + 1
-                    if self.selected > len(self.lines) - 1:
-                        self.selected = 0
+                    self.selectionDown()
                 elif e.key == pygame.K_UP:
-                    self.selected = self.selected - 1
-                    if self.selected < 0:
-                        self.selected = len(self.lines) - 1
-        pass
+                    self.selectionUp()
+                elif e.key == pygame.K_KP_ENTER or e.key == pygame.K_KP_ENTER or e.key == pygame.K_SPACE:
+                    self.select()
+            elif e.type == pygame.JOYHATMOTION:
+                lr, ud = e.value
+                if ud > 0:
+                    self.selectionUp()
+                elif ud < 0:
+                    self.selectionDown()
+            elif e.type == pygame.JOYBUTTONDOWN:
+                if e.button == 0:
+                    self.select()
 
 class Connect(Screen):
     def __init__(self):

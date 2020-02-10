@@ -20,6 +20,8 @@ def main():
 
     running = True
 
+    joysticks = []
+
     try:
         while running:
             t = time.time()
@@ -28,10 +30,19 @@ def main():
                 screen.display()
             if t >= lastTickTime + tickInterval:
                 lastTickTime = t
+                
                 screen.update()
                 if screen.successor != None:
                     screen = screen.successor
             screen.handleEvent(pygame.event.get())
+            #pygame.joystick.quit()
+            #pygame.joystick.init()
+            if pygame.joystick.get_count() > len(joysticks):
+                stick = pygame.joystick.Joystick(len(joysticks))
+                joysticks.append(stick)
+                stick.init()
+
+                print("Une manette s'est connectée ({})".format(len(joysticks)))
             
 
     except KeyboardInterrupt:
