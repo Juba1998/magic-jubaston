@@ -11,6 +11,8 @@ class Element():
         self.selected = False
         self.position = (0,0)
         self.size = (0,0)
+        self.action = lambda : None
+        self.locked = False
 
     def link(self, direction, elem):
         self.links[direction] = elem
@@ -18,14 +20,16 @@ class Element():
 
     def goTo(self, dir):
         elem = self.links[dir]
-        if elem == None:
-            return
+        if elem == None or elem.locked:
+            return self
         self.deselect()
         elem.select()
         return elem
 
 
     def select(self):
+        if self.locked:
+            return None
         self.selected = True
         return self
 
@@ -43,6 +47,22 @@ class Element():
 
     def getShape(self):
         pass
+
+    def setAction(self, action):
+        self.action = action
+        return self
+
+    def trigger(self):
+        return self.action()
+
+    def lock(self):
+        self.locked = True
+        #0.1
+        return self
+
+    def unlock(self):
+        self.locked = False
+        return self
 
 class Shape(Element):
     def __init__(self):
@@ -153,3 +173,23 @@ class ProgressBar(Drawable):
 
     def setRange(self, mini, maxi):
         return self.setMin(mini).setMax(maxi)
+
+class ControllerIndicator(Drawable):
+    def __init__(self, mini, maxi, value):
+        Element.__init__(self)
+        self.color = (219, 37, 37)
+        self.activationColor = (37, 219, 116)
+        self.borderColor = (0,0,0)
+        self.activated = False
+
+    def draw(self, window):
+        x, y = self.position
+        w,h = self.size
+        color = self.color if not self.activated else self.activationColor
+        pygame.draw.rect(window, color, (x, y, w, h), 0)
+
+    def activate(self):
+        self.activated = True
+
+    def desactivate(self):
+        self.activated = False

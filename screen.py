@@ -1,4 +1,3 @@
-from abc import ABC, abstractmethod
 import pygame
 from threading import Thread
 import math
@@ -6,8 +5,19 @@ import os
 import time
 import guielement
 
-class Screen(ABC):
-    def display(self, sources):
+class Screen():
+    def __init__(self, sources, resolution, joysticks):
+        self.texts = []
+        self.drawables = []
+        self.resolution = resolution
+        self.joysticks = joysticks
+        self.window = pygame.display.set_mode(self.resolution)
+        self.title = "Super Smash Bros No Jutsu | "
+        
+        self.successor = None
+        self.sources = sources
+
+    def display(self):
         pass
 
     def update(self):
@@ -16,36 +26,53 @@ class Screen(ABC):
     def handleEvent(self, events):
         pass
 
-class Loading(Screen):
-    def __init__(self, sources):
-        self.window = pygame.display.set_mode((1280,720))
-        pygame.display.set_caption("Super Smash Bros No Jutsu | Chargement")
+    def blitTexts(self):
+        for text in self.texts:
+            txt, rect = text.getShape()
+            self.window.blit(txt, rect)
 
+    def draw(self):
+        for d in self.drawables:
+            d.draw(self.window)
+
+    def mutate(self, new):
+        return new(self.sources, self.resolution, self.joysticks)
+
+
+
+class Loading(Screen):
+    def __init__(self, sources, resolution, joysticks):
+        Screen.__init__(self, sources, resolution, joysticks)
+        self.title += "Chargement"
+        pygame.display.set_caption(self.title)
         self.advance = 0
         self.font = pygame.font.Font("src/fonts/naruto.ttf", 32)
         self.loader = Loader(sources)
         self.loader.start()
-        self.sources = sources
-        self.successor = None
 
         w, h = pygame.display.get_surface().get_size()
 
         self.text = guielement.Text()
         self.text.setFont(self.font).setColor((0,0,0)).setText("Chargement 0%").setPosition((w//2, h//2))
 
+        self.texts.append(self.text)
+
         self.progress = guielement.ProgressBar(0, 100, self.advance)
         self.progress.setPosition((w//2, h//4 * 3)).setSize((w//2, h//8)).setBorder(10, (0,0,0))
+        self.drawables.append(self.progress)
 
 
     def display(self):
         pygame.display.set_caption("Super Smash Bros No Jutsu | Chargement {}%".format(self.advance))
         self.window.fill((255,255,255))
+
         self.text.setText("Loading {}%".format(self.advance))
-        txtImage, txtRect = self.text.getShape()
-        self.window.blit(txtImage, txtRect)
+
+        self.blitTexts()
 
         self.progress.setValue(self.advance)
-        self.progress.draw(self.window)
+
+        self.draw()
 
         pygame.display.flip()
 
@@ -53,7 +80,7 @@ class Loading(Screen):
         self.advance = self.loader.getAdvance()
         if self.advance == 100:
             self.loader.join()
-            self.successor = Menu(self.sources)
+            self.successor = self.mutate(Menu)
 
 
 class Loader(Thread):
@@ -122,11 +149,13 @@ class SourceWH():
         return self.storage
         
 class ContollerConnection(Screen):
-    def __init__(self, sources):
-        self.successor = None
-        self.window = pygame.display.set_mode((1280,720))
-        self.background = pygame.image.load("src/images/battlefield_background.jpg").convert()
+    def __init__(self, sources, resolution, joysticks):
+        Screen.__init__(self, sources, resolution, joysticks)
+        
+        self.background = self.sources.restore()["images"]["background"]
         pygame.display.set_caption("Super Smash Bros No Jutsu | Connexion des manettes | {}".format(pygame.joystick.get_count()))
+
+
 
     def display(self):
         self.window.fill((0,0,0))
@@ -139,12 +168,11 @@ class ContollerConnection(Screen):
         pass
 
 class Menu(Screen):
-    def __init__(self, sources):
-        self.successor = None
-        self.window = pygame.display.set_mode((1280,720))
-        self.sources = sources
-        pygame.display.set_caption("Super Smash Bros No Jutsu | Menu")
-        self.background = sources.restore()["images"]["battlefield_background"]
+    def __init__(self, sources, resolution, joysticks):
+        Screen.__init__(self, sources, resolution, joysticks)
+        self.resolution = resolution
+        pygame.display.set_caption(self.title + "Menu")
+        self.background = pygame.transform.scale(sources.restore()["images"]["battlefield_background"], self.window.get_size())
         self.font = sources.restore()["fonts"]["naruto"][32]
 
         w, h = pygame.display.get_surface().get_size()
@@ -152,19 +180,19 @@ class Menu(Screen):
         self.texts = []
 
         self.local = guielement.Text()
-        self.local.setFont(self.font).setColor((0,0,0)).setSelectionColor((100,100,100)).setText("Jouer en local").setPosition((w//2, h//8 * 4))
+        self.local.setFont(self.font).setColor((0,0,0)).setSelectionColor((255, 135, 48)).setText("Jouer en local").setPosition((w//2, h//8 * 4)).setAction(lambda : self.mutate(ContollerConnection))
         self.texts.append(self.local)
 
         self.multi = guielement.Text()
-        self.multi.setFont(self.font).setColor((0,0,0)).setSelectionColor((100,100,100)).setText("Jouer en multijoueur").setPosition((w//2, h//8 * 5))
+        self.multi.setFont(self.font).setColor((0,0,0)).setSelectionColor((255, 135, 48)).setText("Jouer en multijoueur").setPosition((w//2, h//8 * 5))
         self.texts.append(self.multi)
 
         self.options = guielement.Text()
-        self.options.setFont(self.font).setColor((0,0,0)).setSelectionColor((100,100,100)).setText("Parametres").setPosition((w//2, h//8 * 6))
+        self.options.setFont(self.font).setColor((0,0,0)).setSelectionColor((255, 135, 48)).setText("Parametres").setPosition((w//2, h//8 * 6)).setAction(lambda : self.mutate(Settings))
         self.texts.append(self.options)
 
         self.credits = guielement.Text()
-        self.credits.setFont(self.font).setColor((0,0,0)).setSelectionColor((100,100,100)).setText("Credits").setPosition((w//2, h//8 * 7))
+        self.credits.setFont(self.font).setColor((0,0,0)).setSelectionColor((255, 135, 48)).setText("Credits").setPosition((w//2, h//8 * 7))
         self.texts.append(self.credits)
 
         self.selected = self.local.select()
@@ -176,11 +204,8 @@ class Menu(Screen):
         
 
     def display(self):
-        pygame.display.set_caption("Super Smash Bros No Jutsu | Menu")
         self.window.blit(self.background, (0,0))
-        for text in self.texts:
-            txt, rect = text.getShape()
-            self.window.blit(txt, rect)
+        self.blitTexts()
         pygame.display.flip()
 
     def update(self):
@@ -188,16 +213,17 @@ class Menu(Screen):
 
     def handleEvent(self, events):
         for e in events:
-            #print(e.type)
             if e.type == pygame.QUIT:
                 pygame.quit()
             elif e.type == pygame.KEYDOWN:
-                if e.key == pygame.K_DOWN:
+                if e.key == pygame.K_ESCAPE:
+                    pygame.quit()
+                elif e.key == pygame.K_DOWN:
                     self.selected = self.selected.goTo("down")
                 elif e.key == pygame.K_UP:
                     self.selected = self.selected.goTo("up")
-                elif e.key == pygame.K_KP_ENTER or e.key == pygame.K_KP_ENTER or e.key == pygame.K_SPACE:
-                    pass
+                elif e.key == pygame.K_RETURN or e.key == pygame.K_KP_ENTER or e.key == pygame.K_SPACE:
+                    self.successor = self.selected.trigger()
             elif e.type == pygame.JOYHATMOTION:
                 lr, ud = e.value
                 if ud > 0:
@@ -206,7 +232,64 @@ class Menu(Screen):
                     self.selected = self.selected.goTo("down")
             elif e.type == pygame.JOYBUTTONDOWN:
                 if e.button == 0:
-                    pass
+                    self.successor = self.selected.trigger()
+
+
+class Settings(Screen):
+    def __init__(self, sources, resolution, joysticks):
+        Screen.__init__(self, sources, resolution, joysticks)
+        pygame.display.set_caption(self.title + "Options")
+        self.background = pygame.transform.scale(sources.restore()["images"]["battlefield_background"], self.window.get_size())
+        self.font = sources.restore()["fonts"]["naruto"][32]
+
+        w, h = pygame.display.get_surface().get_size()
+
+        self.texts = []
+
+        self.optionsText = guielement.Text().setText("Options").setColor((0,0,0)).setSelectionColor((255, 135, 48)).setPosition((w//2, h//8)).setFont(sources.restore()["fonts"]["naruto"][32])
+        self.texts.append(self.optionsText)
+
+        self.refreshControllersText = guielement.Text().setText("Connecter manettes").setColor((0,0,0)).setSelectionColor((255, 135, 48)).setPosition((w//2, h//8 * 3)).setFont(sources.restore()["fonts"]["naruto"][26]).setAction(lambda: self.reloadJoysticks()).select()
+        self.selected = self.refreshControllersText
+        self.texts.append(self.refreshControllersText)
+
+    def display(self):
+        self.window.blit(self.background, (0,0))
+        self.blitTexts()
+        pygame.display.flip()
+
+    def update(self):
+        pass
+
+    def handleEvent(self, events):
+        for e in events:
+            if e.type == pygame.QUIT:
+                pygame.quit()
+            elif e.type == pygame.KEYDOWN:
+                if e.key == pygame.K_ESCAPE:
+                    self.successor = self.mutate(Menu)
+                elif e.key == pygame.K_DOWN:
+                    self.selected = self.selected.goTo("down")
+                elif e.key == pygame.K_UP:
+                    self.selected = self.selected.goTo("up")
+                elif e.key == pygame.K_RETURN or e.key == pygame.K_KP_ENTER or e.key == pygame.K_SPACE:
+                    self.successor = self.selected.trigger()
+            elif e.type == pygame.JOYHATMOTION:
+                lr, ud = e.value
+                if ud > 0:
+                    self.selected = self.selected.goTo("up")
+                elif ud < 0:
+                    self.selected = self.selected.goTo("down")
+            elif e.type == pygame.JOYBUTTONDOWN:
+                if e.button == 0:
+                    self.successor = self.selected.trigger()
+
+    def reloadJoysticks(self):
+        pygame.joystick.quit()
+        pygame.joystick.init()
+        self.joysticks = [pygame.joystick.Joystick(x) for x in range(pygame.joystick.get_count())]
+        print("Info: {} controllers connected".format(pygame.joystick.get_count()))
+
 
 class Connect(Screen):
     def __init__(self):

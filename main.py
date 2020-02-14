@@ -12,15 +12,16 @@ def main():
     tickInterval = 1 / tickRate
     lastTickTime = 0
 
+    resolution = (1280, 720)
+    resolution = (1600, 900)
     
     sources = screen.SourceWH()
 
     pygame.init()
-    state = screen.Loading(sources)
+
+    state = screen.Loading(sources, resolution, [])
 
     running = True
-
-    joysticks = []
 
     try:
         while running:
@@ -37,12 +38,7 @@ def main():
             state.handleEvent(pygame.event.get())
             #pygame.joystick.quit()
             #pygame.joystick.init()
-            if pygame.joystick.get_count() > len(joysticks):
-                stick = pygame.joystick.Joystick(len(joysticks))
-                joysticks.append(stick)
-                stick.init()
-
-                print("Une manette s'est connectée ({})".format(len(joysticks)))
+            
             
 
     except KeyboardInterrupt:
