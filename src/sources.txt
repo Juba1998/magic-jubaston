@@ -1,3 +1,4 @@
 images/battlefield_background.jpg
+images/bgmenu.png
 fonts/naruto.ttf.32
 fonts/naruto.ttf.26

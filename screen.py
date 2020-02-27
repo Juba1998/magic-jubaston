@@ -13,6 +13,7 @@ class Screen():
         self.joysticks = joysticks
         self.window = pygame.display.set_mode(self.resolution)
         self.title = "Super Smash Bros No Jutsu | "
+        self.quit = False
         
         self.successor = None
         self.sources = sources
@@ -152,8 +153,18 @@ class ContollerConnection(Screen):
     def __init__(self, sources, resolution, joysticks):
         Screen.__init__(self, sources, resolution, joysticks)
         
-        self.background = self.sources.restore()["images"]["background"]
+        self.background = self.sources.restore()["images"]["battlefield_background"]
         pygame.display.set_caption("Super Smash Bros No Jutsu | Connexion des manettes | {}".format(pygame.joystick.get_count()))
+        self.indicators = []
+        
+        w, h = pygame.display.get_surface().get_size()
+        
+        indicatorSize = w//16
+        
+        self.indicators[0] = guielement.ControllerIndicator().setPosition(w//16, h//3).setSize(indicatorSize, indicatorSize).setText("P1")
+        self.indicators[1] = guielement.ControllerIndicator().setPosition((w//16) * 2 + indicatorSize // 2, h//3).setSize(indicatorSize, indicatorSize).setText("P2")
+        self.indicators[2] = guielement.ControllerIndicator().setPosition(w//16, h//3).setSize(indicatorSize, indicatorSize).setText("P3")
+        self.indicators[3] = guielement.ControllerIndicator().setPosition(w//16, h//3).setSize(indicatorSize, indicatorSize).setText("P4")
 
 
 
@@ -172,27 +183,30 @@ class Menu(Screen):
         Screen.__init__(self, sources, resolution, joysticks)
         self.resolution = resolution
         pygame.display.set_caption(self.title + "Menu")
-        self.background = pygame.transform.scale(sources.restore()["images"]["battlefield_background"], self.window.get_size())
+        self.background = pygame.transform.scale(sources.restore()["images"]["bgmenu"], self.window.get_size())
         self.font = sources.restore()["fonts"]["naruto"][32]
 
         w, h = pygame.display.get_surface().get_size()
 
         self.texts = []
+        
+        self.selectionColor = (218, 105, 105)
+        self.textColor = (255,255,255)
 
         self.local = guielement.Text()
-        self.local.setFont(self.font).setColor((0,0,0)).setSelectionColor((255, 135, 48)).setText("Jouer en local").setPosition((w//2, h//8 * 4)).setAction(lambda : self.mutate(ContollerConnection))
+        self.local.setFont(self.font).setColor(self.textColor).setSelectionColor(self.selectionColor).setText("Jouer en local").setPosition((w//2, h//8 * 4)).setAction(lambda : self.mutate(ContollerConnection))
         self.texts.append(self.local)
 
         self.multi = guielement.Text()
-        self.multi.setFont(self.font).setColor((0,0,0)).setSelectionColor((255, 135, 48)).setText("Jouer en multijoueur").setPosition((w//2, h//8 * 5))
+        self.multi.setFont(self.font).setColor(self.textColor).setSelectionColor(self.selectionColor).setText("Jouer en multijoueur").setPosition((w//2, h//8 * 5))
         self.texts.append(self.multi)
 
         self.options = guielement.Text()
-        self.options.setFont(self.font).setColor((0,0,0)).setSelectionColor((255, 135, 48)).setText("Parametres").setPosition((w//2, h//8 * 6)).setAction(lambda : self.mutate(Settings))
+        self.options.setFont(self.font).setColor(self.textColor).setSelectionColor(self.selectionColor).setText("Parametres").setPosition((w//2, h//8 * 6)).setAction(lambda : self.mutate(Settings))
         self.texts.append(self.options)
 
         self.credits = guielement.Text()
-        self.credits.setFont(self.font).setColor((0,0,0)).setSelectionColor((255, 135, 48)).setText("Credits").setPosition((w//2, h//8 * 7))
+        self.credits.setFont(self.font).setColor(self.textColor).setSelectionColor(self.selectionColor).setText("Credits").setPosition((w//2, h//8 * 7))
         self.texts.append(self.credits)
 
         self.selected = self.local.select()
@@ -214,10 +228,10 @@ class Menu(Screen):
     def handleEvent(self, events):
         for e in events:
             if e.type == pygame.QUIT:
-                pygame.quit()
+                self.quit = True
             elif e.type == pygame.KEYDOWN:
                 if e.key == pygame.K_ESCAPE:
-                    pygame.quit()
+                    self.quit = True
                 elif e.key == pygame.K_DOWN:
                     self.selected = self.selected.goTo("down")
                 elif e.key == pygame.K_UP:
@@ -259,12 +273,13 @@ class Settings(Screen):
         pygame.display.flip()
 
     def update(self):
+        self.refreshControllersText.setText("Connecter manettes ({})".format(pygame.joystick.get_count()))
         pass
 
     def handleEvent(self, events):
         for e in events:
             if e.type == pygame.QUIT:
-                pygame.quit()
+                self.quit = True
             elif e.type == pygame.KEYDOWN:
                 if e.key == pygame.K_ESCAPE:
                     self.successor = self.mutate(Menu)

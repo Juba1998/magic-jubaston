@@ -24,7 +24,7 @@ def main():
     running = True
 
     try:
-        while running:
+        while running and not state.quit:
             t = time.time()
             if t >= lastFrameTime + frameInterval:
                 lastFrameTime = t
