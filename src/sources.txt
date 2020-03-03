@@ -2,3 +2,11 @@ images/battlefield_background.jpg
 images/bgmenu.png
 fonts/naruto.ttf.32
 fonts/naruto.ttf.26
+images/ico/controller/off/1.png
+images/ico/controller/off/2.png
+images/ico/controller/off/3.png
+images/ico/controller/off/4.png
+images/ico/controller/on/1.png
+images/ico/controller/on/2.png
+images/ico/controller/on/3.png
+images/ico/controller/on/4.png

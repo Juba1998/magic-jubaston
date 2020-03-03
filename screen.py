@@ -159,24 +159,73 @@ class ContollerConnection(Screen):
         
         w, h = pygame.display.get_surface().get_size()
         
-        indicatorSize = w//16
-        
-        self.indicators[0] = guielement.ControllerIndicator().setPosition(w//16, h//3).setSize(indicatorSize, indicatorSize).setText("P1")
-        self.indicators[1] = guielement.ControllerIndicator().setPosition((w//16) * 2 + indicatorSize // 2, h//3).setSize(indicatorSize, indicatorSize).setText("P2")
-        self.indicators[2] = guielement.ControllerIndicator().setPosition(w//16, h//3).setSize(indicatorSize, indicatorSize).setText("P3")
-        self.indicators[3] = guielement.ControllerIndicator().setPosition(w//16, h//3).setSize(indicatorSize, indicatorSize).setText("P4")
+        indicatorSize = w//8
+        indicatorY = h//2 - indicatorSize // 2
+        indicatorPositions = [
+            (2.5 * (w//16), indicatorY),
+            (0,0),
+            (0,0),
+            (0,0)
+        ]
+        for i in range(1,4):
+            indicatorPositions[i] = (indicatorPositions[i-1][0] + indicatorSize * 1.5, indicatorPositions[i-1][1])
 
+        self.indicators.append(guielement.ControllerIndicator(1, sources).setPosition(indicatorPositions[0]).setSize((indicatorSize, indicatorSize)))
+        self.indicators.append(guielement.ControllerIndicator(2, sources).setPosition(indicatorPositions[1]).setSize((indicatorSize, indicatorSize)))
+        self.indicators.append(guielement.ControllerIndicator(3, sources).setPosition(indicatorPositions[2]).setSize((indicatorSize, indicatorSize)))
+        self.indicators.append(guielement.ControllerIndicator(4, sources).setPosition(indicatorPositions[3]).setSize((indicatorSize, indicatorSize)))
+
+        for i in self.indicators:
+            self.drawables.append(i)
+        
+        self.reloadJoysticks()
 
 
     def display(self):
         self.window.fill((0,0,0))
+        self.draw()
+        self.blitTexts()
         pygame.display.flip()
 
     def update(self):
         pass
 
     def handleEvent(self, events):
-        pass
+        for e in events:
+            if e.type == pygame.QUIT:
+                self.quit = True
+            elif e.type == pygame.KEYDOWN:
+                if e.key == pygame.K_ESCAPE:
+                    self.successor = self.mutate(Menu)
+                elif e.key == pygame.K_DOWN:
+                    pass
+                elif e.key == pygame.K_UP:
+                    pass
+                elif e.key == pygame.K_RETURN or e.key == pygame.K_KP_ENTER:
+                    pass
+                elif e.key == pygame.K_SPACE:
+                    self.reloadJoysticks()
+            elif e.type == pygame.JOYHATMOTION:
+                lr, ud = e.value
+                if ud > 0:
+                    pass
+                elif ud < 0:
+                    pass
+            elif e.type == pygame.JOYBUTTONDOWN:
+                print(e.joy)
+                if e.button == 0:
+                    pass
+
+    def reloadJoysticks(self):
+        pygame.joystick.quit()
+        pygame.joystick.init()
+        self.joysticks = [pygame.joystick.Joystick(x) for x in range(pygame.joystick.get_count())]
+        for i in range(0,4):
+            self.indicators[i].desactivate() 
+        for x in range(pygame.joystick.get_count()):
+            self.indicators[x].activate()
+        pygame.display.set_caption("Super Smash Bros No Jutsu | Connexion des manettes | {}".format(pygame.joystick.get_count()))
+        print("Info: {} controllers connected".format(pygame.joystick.get_count()))
 
 class Menu(Screen):
     def __init__(self, sources, resolution, joysticks):
@@ -191,7 +240,7 @@ class Menu(Screen):
         self.texts = []
         
         self.selectionColor = (218, 105, 105)
-        self.textColor = (255,255,255)
+        self.textColor = (0,0,0)
 
         self.local = guielement.Text()
         self.local.setFont(self.font).setColor(self.textColor).setSelectionColor(self.selectionColor).setText("Jouer en local").setPosition((w//2, h//8 * 4)).setAction(lambda : self.mutate(ContollerConnection))
@@ -227,6 +276,7 @@ class Menu(Screen):
 
     def handleEvent(self, events):
         for e in events:
+            print(e.type)
             if e.type == pygame.QUIT:
                 self.quit = True
             elif e.type == pygame.KEYDOWN:

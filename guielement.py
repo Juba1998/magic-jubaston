@@ -175,41 +175,23 @@ class ProgressBar(Drawable):
         return self.setMin(mini).setMax(maxi)
 
 class ControllerIndicator(Drawable):
-    def __init__(self):
+    def __init__(self, number, sources):
         Element.__init__(self)
-        self.color = (219, 37, 37)
-        self.activationColor = (37, 219, 116)
-        self.borderColor = (0,0,0)
+        if number < 1 or number > 4:
+            raise Exception("Controller number must be between 1 and 4")
+        self.activatedImage = sources.restore()["images"]["ico"]["controller"]["on"]["{}".format(number)]
+        self.desactivatedImage = sources.restore()["images"]["ico"]["controller"]["off"]["{}".format(number)]
         self.activated = False
-        self.font = None
-        self.text = None
 
     def draw(self, window):
-        if self.text == None:
-            return
         x,y = self.position
         w,h = self.size
-        color = self.color if not self.activated else self.activationColor
-        pygame.draw.rect(window, color, (x, y, w, h), 0)
-        txt, rect = self.text.getShape()
-        window.blit(txt, rect)
+        image = self.activatedImage if self.activated else self.desactivatedImage
+        image = pygame.transform.scale(image, (w, h))
+        window.blit(image, (x, y))
 
     def activate(self):
         self.activated = True
 
     def desactivate(self):
         self.activated = False
-    
-    def setFont(self, font):
-        self.font = font
-
-
-    def setText(self, text):
-        self.text = self.generateText(text)
-
-    def generateText(self, text):
-        if self.font == None:
-            return
-        x, y = self.position
-        w, h = self.size
-        return Text().setFont(self.font).setColor(self.borderColor).setText(text).setPosition((x+ w//10, y + h//10))
