@@ -181,12 +181,19 @@ class ControllerIndicator(Drawable):
             raise Exception("Controller number must be between 1 and 4")
         self.activatedImage = sources.restore()["images"]["ico"]["controller"]["on"]["{}".format(number)]
         self.desactivatedImage = sources.restore()["images"]["ico"]["controller"]["off"]["{}".format(number)]
+        self.feedbackImage = sources.restore()["images"]["ico"]["controller"]["feedback"]["{}".format(number)]
         self.activated = False
+        self.feedback = False
 
     def draw(self, window):
         x,y = self.position
         w,h = self.size
-        image = self.activatedImage if self.activated else self.desactivatedImage
+        if self.feedback:
+            image = self.feedbackImage
+        elif self.activated:
+            image = self.activatedImage
+        else:
+            image = self.desactivatedImage
         image = pygame.transform.scale(image, (w, h))
         window.blit(image, (x, y))
 
@@ -195,3 +202,9 @@ class ControllerIndicator(Drawable):
 
     def desactivate(self):
         self.activated = False
+
+    def giveFeedback(self):
+        self.feedback = True
+
+    def stopFeedback(self):
+        self.feedback = False

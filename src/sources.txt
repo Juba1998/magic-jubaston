@@ -10,3 +10,7 @@ images/ico/controller/on/1.png
 images/ico/controller/on/2.png
 images/ico/controller/on/3.png
 images/ico/controller/on/4.png
+images/ico/controller/feedback/1.png
+images/ico/controller/feedback/2.png
+images/ico/controller/feedback/3.png
+images/ico/controller/feedback/4.png

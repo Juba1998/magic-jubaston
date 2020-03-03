@@ -19,6 +19,9 @@ def main():
 
     pygame.init()
 
+    for x in range(pygame.joystick.get_count()):
+        pygame.joystick.Joystick(x).init()
+
     state = screen.Loading(sources, resolution, [])
 
     running = True

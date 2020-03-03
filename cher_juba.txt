@@ -1,0 +1,44 @@
+Cher Juba,
+Si tu lis ce texte c'est que tu as sûrement déjà installé git et clone ce repository.
+Voila une bonne chose de faite.
+Maintenant, concernant la programmation informatique de l'application destiné au divertissement de type combat virtuel de type Smash Bros,
+il va falloir faire le gameplay.
+
+Ce qui est deja fait:
+-Menu principal
+-Menu de connexion des manettes
+-Menu des settings
+-Gestion des manettes
+-Chargement des ressources
+
+Je dois maintenant travailler sur la selection des personnages, ce sera pour le moment fait avec des images à la con pour tester.
+
+Si tu veux coder les combats, je dois te préciser quelques trucs.
+
+- Toute action dans le jeu est faite sous forme d'une commande (MoveCommand, AttackCommand, UpdateStatsCommand, etc), celles-ci vont être crées au fur et à 
+mersure des besoins.
+Chaque command à un code attribué (0,1,2,3,...) et des attributs. Par exemple, pour MoveCommand qui sert à indiquer une nouvelle position: id de l'entité, nouveau x, nouveau y.
+Afin d'envoyer ces commandes aux autres joueurs, il faut les serializer, pour ce faire on met le code de la commande suivi des attributs à la suite.
+On va ensuite transfomrer cette liste de chiffres en octets qui pourront être communiqués rapidement par les sockets.
+
+- Le principe de commande implique que, même en local, une action generera une commande à ajouter à la file de commandes.
+Par exemple, avancer avec un personnage ce n'est pas modifier son x. C'est ajouter une commande à la fille, celle-ci va être lue par le jeu qui va modifier le x du perso.
+Grace à cela, une fois en reseau, il suffit d'ajouter chaque commandes recues des autres joueur à la file, notre jeu les interprete comme les commandes locales et modifie le jeu en consequences.
+Il faut également, avant d'ajouter notre commande à la file, envoyer cette commande à tout les autres joueurs.
+
+- Autour de ce principe on peut tout faire, et surtout developper du local très facilement adaptable en multi.
+
+- Si possible, test tout ce que tu fais avec une manette PS4, je test avec ça perso
+
+- Il va te falloir Pygame (passe par pip3 si possible ça sera plus simple)
+
+- Je pense qu'il vaut mieux ne pas chercher à mettre des sprites dès le début, de simples rectangles feront l'affaire (penser au fait que les persos ne feront pas tous la même taille)
+
+- Il faut par contre penser qu'il y aura des animations à faire, preparer le terrain pour ça
+
+- J'ai fait un bout de code pour t'aider à te lancer: la serialisation, exemple de commande et classe Entity qui sera la classe mere de toute chose dans le jeu (incomplete)
+
+J'ajouterais surement des choses plus tard mais ça va aider à demarrer.
+
+Bisous,
+Mathis.

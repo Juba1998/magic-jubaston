@@ -36,6 +36,9 @@ class Screen():
         for d in self.drawables:
             d.draw(self.window)
 
+    def addText(self, text):
+        self.texts.append(text)
+
     def mutate(self, new):
         return new(self.sources, self.resolution, self.joysticks)
 
@@ -108,7 +111,11 @@ class Loader(Thread):
             line = "src/{}".format(line)
             if path[0] == "images":
                 try:
-                    self.swh.store(path, path[-1].split(".")[0], pygame.image.load(line).convert())
+                    if line.endswith(".png"):
+                        image = pygame.image.load(line).convert_alpha()
+                    else:
+                        image = pygame.image.load(line).convert()
+                    self.swh.store(path, path[-1].split(".")[0], image)
                 except pygame.error as message:
                     print("[Error][Loading]: " + line)
             if path[0] == "fonts":
@@ -153,7 +160,7 @@ class ContollerConnection(Screen):
     def __init__(self, sources, resolution, joysticks):
         Screen.__init__(self, sources, resolution, joysticks)
         
-        self.background = self.sources.restore()["images"]["battlefield_background"]
+        self.background = pygame.transform.scale(sources.restore()["images"]["bgmenu"], self.window.get_size())
         pygame.display.set_caption("Super Smash Bros No Jutsu | Connexion des manettes | {}".format(pygame.joystick.get_count()))
         self.indicators = []
         
@@ -180,9 +187,14 @@ class ContollerConnection(Screen):
         
         self.reloadJoysticks()
 
+        refreshText = guielement.Text().setText("Espace: rafraichir manettes").setFont(self.sources.restore()["fonts"]["naruto"][26]).setColor((0,0,0)).setPosition((w//2, h - h//8))
+        self.addText(refreshText)
+        startText = guielement.Text().setText("Entrer: Jouer").setFont(self.sources.restore()["fonts"]["naruto"][26]).setColor((0,0,0)).setPosition((w//2, h - h//16))
+        self.addText(startText)
 
     def display(self):
         self.window.fill((0,0,0))
+        self.window.blit(self.background, (0,0))
         self.draw()
         self.blitTexts()
         pygame.display.flip()
@@ -212,7 +224,11 @@ class ContollerConnection(Screen):
                 elif ud < 0:
                     pass
             elif e.type == pygame.JOYBUTTONDOWN:
-                print(e.joy)
+                self.indicators[e.joy].giveFeedback()
+                if e.button == 0:
+                    pass
+            elif e.type == pygame.JOYBUTTONUP:
+                self.indicators[e.joy].stopFeedback()
                 if e.button == 0:
                     pass
 
@@ -220,6 +236,8 @@ class ContollerConnection(Screen):
         pygame.joystick.quit()
         pygame.joystick.init()
         self.joysticks = [pygame.joystick.Joystick(x) for x in range(pygame.joystick.get_count())]
+        for x in range(pygame.joystick.get_count()):
+            self.joysticks[x].init()
         for i in range(0,4):
             self.indicators[i].desactivate() 
         for x in range(pygame.joystick.get_count()):
@@ -276,7 +294,6 @@ class Menu(Screen):
 
     def handleEvent(self, events):
         for e in events:
-            print(e.type)
             if e.type == pygame.QUIT:
                 self.quit = True
             elif e.type == pygame.KEYDOWN:
@@ -353,6 +370,8 @@ class Settings(Screen):
         pygame.joystick.quit()
         pygame.joystick.init()
         self.joysticks = [pygame.joystick.Joystick(x) for x in range(pygame.joystick.get_count())]
+        for x in range(pygame.joystick.get_count()):
+            self.joysticks[x].init()
         print("Info: {} controllers connected".format(pygame.joystick.get_count()))
 
 
@@ -365,7 +384,7 @@ class Connect(Screen):
     def display(self):
         print("Display the connection screen for distant game")
 
-class Game(Screen):
+class InGame(Screen):
     def __init__(self, sources):
         self.window = pygame.display.set_mode((1280,720))
         self.background = pygame.image.load("/home/mathis/git-repos/magic-jubaston/src/images/battlefield_background.jpg").convert()
